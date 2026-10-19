@@ -36,17 +36,15 @@ def post_requests():
 
     user = data.get("user")
     application = data.get("application")
-    #prevent duplication
+    
     
         
-        
-
     new_dict = {
         "user": data["user"],
         "application": data["application"],
         "status": "pending",
     }
-
+    #prevents duplication
     for existing_request in access_requests:
         if existing_request["user"] == user and existing_request["application"] == application:
             return jsonify({"error": "Duplicate request"}), 409
@@ -55,8 +53,8 @@ def post_requests():
 
     return jsonify(new_dict), 201
 
-@app.route("/requests/<user_name>", methods=["PATCH"])
-def change_status(user_name):
+@app.route("/requests/<user_name>/<application>", methods=["PATCH"])
+def change_status(user_name, application):
 
     data = request.get_json()
 
@@ -67,12 +65,14 @@ def change_status(user_name):
     new_status = data.get("status")
 
     for request_item in access_requests:
-        if request_item["user"] == user_name:
+        if request_item["user"] == user_name and request_item["application"] == application:
             if request_item["status"] != "pending":
                 return jsonify({"error": "Request has already been processed"}), 400
+            else: 
+                request_item["status"] = new_status
+            return jsonify(request_item), 200 
 
-            request_item["status"] = new_status 
-            return jsonify(request_item), 200   
+    return jsonify({"error": "Access request not found"}), 404  
 
     if new_status not in ["approved", "rejected", "pending"]:
         return jsonify({"error": "status must be approved or rejected"}), 400
