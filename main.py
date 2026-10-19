@@ -25,20 +25,32 @@ def get_requests():
 @app.route("/requests", methods=["POST"])
 def post_requests():
 
+    
+
     data =request.get_json()
 
     if not data.get("user") or not data.get("application"):
         return jsonify({"error": "Both user and application are required"}), 400
 
+    
+
     user = data.get("user")
     application = data.get("application")
-
+    #prevent duplication
+    
+        
+        
 
     new_dict = {
         "user": data["user"],
         "application": data["application"],
         "status": "pending",
     }
+
+    for existing_request in access_requests:
+        if existing_request["user"] == user and existing_request["application"] == application:
+            return jsonify({"error": "Duplicate request"}), 409
+    
     access_requests.append(new_dict)
 
     return jsonify(new_dict), 201
